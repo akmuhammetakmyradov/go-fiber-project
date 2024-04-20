@@ -1,4 +1,4 @@
-# Project Name
+# Test Golang Project with Fiber
 
 Brief description of your project.
 
