@@ -38,3 +38,13 @@ To start the project, follow these steps:
    Test.postman_collection.json
 
    ```
+
+4. When you start project superadmin created automatically
+   because of every admin can not create user without authorization so
+   you can login with the following information:
+
+   ```bash
+    login: superadmin
+    password: 1234
+
+   ```
