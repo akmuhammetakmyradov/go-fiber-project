@@ -1,0 +1,21 @@
+# Ignore git-related files
+.git
+.gitignore
+
+# Ignore Go binary files
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Ignore build artifacts and directories
+bin/
+vendor/
+
+# Ignore editor-related files
+.vscode/
+.idea/
+
+# Ignore any other files or directories that are not needed in the Docker context
+README.md

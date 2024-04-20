@@ -1,0 +1,32 @@
+version: '3.7'
+
+services:
+  backend:
+    depends_on:
+      db:
+        condition: service_healthy
+    build: ./
+    container_name: test
+    ports:
+      - '3000:3000'
+  db:
+    restart: always
+    image: postgres:alpine
+    container_name: database
+    volumes:
+      - postgres-db:/var/lib/postgresql/data
+      - ./database/migrations/000001_init_test.up.sql:/docker-entrypoint-initdb.d/000001_init_test.up.sql
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=1234
+      - POSTGRES_DB=test
+      - POSTGRES_HOST=database
+    healthcheck:
+      test: [ "CMD-SHELL", "psql postgresql://postgres:12345@localhost:5432/test" ]
+      interval: 5s
+      timeout: 3s
+      retries: 3
+    ports:
+      - "4000:5432"
+volumes:
+  postgres-db:
