@@ -31,3 +31,10 @@ To start the project, follow these steps:
    make composeup
 
    ```
+
+3. Use APIs with postman. Postman file exist in the project:
+
+   ```bash
+   Test.postman_collection.json
+
+   ```
