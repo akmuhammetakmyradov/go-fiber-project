@@ -8,7 +8,7 @@ RUN go mod download
 
 COPY . .
 
-RUN CGO_ENABLED=0 go build -o testmain ./cmd/main.go
+RUN make build
 
 
 # Deploy stage
@@ -16,7 +16,7 @@ FROM debian:buster-slim
 
 WORKDIR /app
 
-COPY --from=builder /app/testmain /app/config.yml ./
+COPY --from=builder /app/bin/testmain /app/config.yml ./
 
 EXPOSE 3000
 

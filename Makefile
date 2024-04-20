@@ -37,10 +37,13 @@ migratedown:
 migratefix:
 	migrate -database ${POSTGRESQL_URL} -path database/migrations -verbose force ${MIGRATE_VERSION}
 
+composebuild:
+	sudo docker-compose build
+
 composeup:
-	docker-compose up -d
+	sudo docker-compose up -d
 
 composedown:
-	docker-compose down
+	sudo docker-compose down
 
-.PHONY: migrate migrateup migratedown migratefix composeup composedown build clean deps
+.PHONY: migrate migrateup migratedown migratefix composebuild composeup composedown build clean deps
