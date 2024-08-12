@@ -3,11 +3,11 @@ listen:
   port: 3000
 
 postgres:
-  host: database
+  host: localhost
   port: 5432
-  username: postgres
+  username: test
   db_name: test
-  password: 1234
+  password: 12345
   ssl_mode: disable
 
 jwt:

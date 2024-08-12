@@ -36,9 +36,9 @@ type (
 func LoadConfiguration() (*Configs, error) {
 
 	// TODO path config
-	// pathConfig := "./../config.yml"
+	pathConfig := "./config.yml"
 	// for docker
-	pathConfig := "/app/config.yml"
+	// pathConfig := "/app/config.yml"
 
 	var config Configs
 	viper.SetConfigFile(pathConfig)
