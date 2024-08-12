@@ -9,6 +9,7 @@ import (
 type Configs struct {
 	Listen   Listen     `mapstructure:"listen"`
 	Postgres DbPostgres `mapstructure:"postgres"`
+	Redis    Redis      `mapstructure:"redis"`
 	JWT      JWT        `mapstructure:"jwt"`
 }
 
@@ -25,6 +26,13 @@ type (
 		UserName string `mapstructure:"username"`
 		Password string `mapstructure:"password"`
 		Sslmode  string `mapstructure:"ssl_mode"`
+	}
+
+	Redis struct {
+		Host     string `mapstructure:"host"`
+		Port     string `mapstructure:"port"`
+		Password string `mapstructure:"password"`
+		DB       int    `mapstructure:"db"`
 	}
 
 	JWT struct {

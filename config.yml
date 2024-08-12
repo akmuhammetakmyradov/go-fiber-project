@@ -10,6 +10,12 @@ postgres:
   password: 12345
   ssl_mode: disable
 
+redis:
+  host: localhost
+  port: 6390
+  password:
+  db: 5
+
 jwt:
   access_secret: accesswarning!07@#&
   access_exp: 18000 #5 hours
