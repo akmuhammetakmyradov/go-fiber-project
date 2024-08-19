@@ -11,6 +11,7 @@ import (
 	"github.com/akmuhammetakmyradov/test/internal/handlers/manager"
 	"github.com/akmuhammetakmyradov/test/pkg/config"
 	"github.com/akmuhammetakmyradov/test/pkg/postgresql"
+	"github.com/akmuhammetakmyradov/test/pkg/redis"
 )
 
 func InitApp(cfg *config.Configs) error {
@@ -23,7 +24,12 @@ func InitApp(cfg *config.Configs) error {
 		db.Close()
 	}()
 
-	app := manager.Manager(db, cfg)
+	redisClient, err := redis.NewRedisClient(cfg)
+	if err != nil {
+		return err
+	}
+
+	app := manager.Manager(db, redisClient, cfg)
 
 	go func() {
 		if err := app.Listen(fmt.Sprintf(":%s", cfg.Listen.Port)); err != nil {

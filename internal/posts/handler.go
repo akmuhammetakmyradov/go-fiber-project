@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/akmuhammetakmyradov/test/internal/handlers"
+	"github.com/akmuhammetakmyradov/test/internal/posts/models"
 	"github.com/akmuhammetakmyradov/test/pkg/config"
 	"github.com/akmuhammetakmyradov/test/pkg/middlewares"
 	"github.com/gofiber/fiber/v2"
@@ -25,11 +26,11 @@ const (
 )
 
 type handler struct {
-	repository Repository
+	repository *Repository
 	cfg        *config.Configs
 }
 
-func NewHandler(repository Repository, cfg *config.Configs) handlers.Handler {
+func NewHandler(repository *Repository, cfg *config.Configs) handlers.Handler {
 	return &handler{
 		repository: repository,
 		cfg:        cfg,
@@ -46,7 +47,7 @@ func (h *handler) Register(router fiber.Router) {
 }
 
 func (h *handler) LoginHandler(c *fiber.Ctx) error {
-	var inputUser LoginDTO
+	var inputUser models.LoginDTO
 
 	if err := c.BodyParser(&inputUser); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
@@ -103,7 +104,7 @@ func (h *handler) LoginHandler(c *fiber.Ctx) error {
 }
 
 func (h *handler) CreateUserHandler(c *fiber.Ctx) error {
-	var user UserDTO
+	var user models.UserDTO
 	if err := c.BodyParser(&user); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": err.Error(),
@@ -147,7 +148,7 @@ func (h *handler) CreateUserHandler(c *fiber.Ctx) error {
 }
 
 func (h *handler) CreatePostHandler(c *fiber.Ctx) error {
-	var post PostDTO
+	var post models.PostDTO
 	if err := c.BodyParser(&post); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": err.Error(),
@@ -169,7 +170,7 @@ func (h *handler) CreatePostHandler(c *fiber.Ctx) error {
 }
 
 func (h *handler) DeletePostHandler(c *fiber.Ctx) error {
-	var postID ID
+	var postID models.ID
 
 	if err := c.BodyParser(&postID); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{

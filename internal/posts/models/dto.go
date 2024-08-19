@@ -1,4 +1,4 @@
-package posts
+package models
 
 type LoginDTO struct {
 	Login    string `json:"login"`

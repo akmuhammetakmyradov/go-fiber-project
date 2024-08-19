@@ -2,12 +2,12 @@ package manager
 
 import (
 	"github.com/akmuhammetakmyradov/test/internal/posts"
-	postsdb "github.com/akmuhammetakmyradov/test/internal/posts/db"
 	"github.com/akmuhammetakmyradov/test/pkg/config"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/jackc/pgx/v4/pgxpool"
+	"github.com/redis/go-redis/v9"
 )
 
 const (
@@ -17,7 +17,7 @@ const (
 	postsURL         = "/posts"
 )
 
-func Manager(db *pgxpool.Pool, cfg *config.Configs) *fiber.App {
+func Manager(db *pgxpool.Pool, cache *redis.Client, cfg *config.Configs) *fiber.App {
 	app := fiber.New(fiber.Config{
 		BodyLimit: 100 * 1024 * 1024,
 	})
@@ -36,7 +36,7 @@ func Manager(db *pgxpool.Pool, cfg *config.Configs) *fiber.App {
 
 	// posts
 	postRouterManager := router.Group(postsURL)
-	postRouterRepository := postsdb.NewRepository(db)
+	postRouterRepository := posts.NewRepository(db, cache)
 	postRouterHandler := posts.NewHandler(postRouterRepository, cfg)
 	postRouterHandler.Register(postRouterManager)
 

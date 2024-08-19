@@ -5,23 +5,23 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/akmuhammetakmyradov/test/internal/posts"
+	"github.com/akmuhammetakmyradov/test/internal/posts/models"
 	"github.com/akmuhammetakmyradov/test/pkg/utils"
 	"github.com/jackc/pgx/v4/pgxpool"
 )
 
-type repository struct {
+type DbRepo struct {
 	db *pgxpool.Pool
 }
 
-func NewRepository(db *pgxpool.Pool) posts.Repository {
-	return &repository{
+func NewDbRepo(db *pgxpool.Pool) *DbRepo {
+	return &DbRepo{
 		db: db,
 	}
 }
 
-func (r *repository) GetUser(ctx context.Context, login string) (posts.User, error) {
-	var result posts.User
+func (r *DbRepo) GetUser(ctx context.Context, login string) (models.User, error) {
+	var result models.User
 	randomString := utils.GenerateRandomString(5)
 	login = fmt.Sprintf("$%s$%s$%s$", randomString, login, randomString)
 
@@ -42,15 +42,15 @@ func (r *repository) GetUser(ctx context.Context, login string) (posts.User, err
 	return result, nil
 }
 
-func (r *repository) CreateUser(ctx context.Context, user posts.UserDTO) (posts.ID, error) {
-	var result posts.ID
+func (r *DbRepo) CreateUser(ctx context.Context, user models.UserDTO) (models.ID, error) {
+	var result models.ID
 
 	query := `
 		INSERT INTO 
 			users (name, login, password, type)
 			VALUES ($1, $2, $3, $4)
 		RETURNING id;
-			`
+	`
 	err := r.db.QueryRow(ctx, query, user.Name, user.Login, user.Password,
 		user.Type).Scan(&result.ID)
 
@@ -62,8 +62,8 @@ func (r *repository) CreateUser(ctx context.Context, user posts.UserDTO) (posts.
 	return result, nil
 }
 
-func (r *repository) CreatePost(ctx context.Context, user posts.PostDTO) (posts.ID, error) {
-	var result posts.ID
+func (r *DbRepo) CreatePost(ctx context.Context, user models.PostDTO) (models.ID, error) {
+	var result models.ID
 
 	query := `INSERT INTO posts (header, text) VALUES ($1, $2) RETURNING id;`
 
@@ -77,7 +77,7 @@ func (r *repository) CreatePost(ctx context.Context, user posts.PostDTO) (posts.
 	return result, nil
 }
 
-func (r *repository) DeletePost(ctx context.Context, postID int) error {
+func (r *DbRepo) DeletePost(ctx context.Context, postID int) error {
 
 	query := `DELETE FROM posts WHERE id = $1`
 
@@ -95,8 +95,8 @@ func (r *repository) DeletePost(ctx context.Context, postID int) error {
 	return nil
 }
 
-func (r *repository) GetPosts(ctx context.Context, limit, page int) ([]posts.Post, error) {
-	var result []posts.Post
+func (r *DbRepo) GetPosts(ctx context.Context, limit, page int) ([]models.Post, error) {
+	var result []models.Post
 
 	query := `
 		SELECT
@@ -114,7 +114,7 @@ func (r *repository) GetPosts(ctx context.Context, limit, page int) ([]posts.Pos
 	defer rows.Close()
 
 	for rows.Next() {
-		post := posts.Post{}
+		post := models.Post{}
 
 		err = rows.Scan(&post.ID, &post.Header, &post.Text)
 		if err != nil {
@@ -128,8 +128,8 @@ func (r *repository) GetPosts(ctx context.Context, limit, page int) ([]posts.Pos
 	return result, nil
 }
 
-func (r *repository) GetPost(ctx context.Context, postID int) (posts.Post, error) {
-	var result posts.Post
+func (r *DbRepo) GetPost(ctx context.Context, postID int) (models.Post, error) {
+	var result models.Post
 
 	query := `
 		SELECT
