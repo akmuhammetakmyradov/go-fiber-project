@@ -3,15 +3,17 @@ listen:
   port: 3000
 
 postgres:
-  host: localhost
+  # host: database
+  host: database
   port: 5432
   username: test
   db_name: test
-  password: 12345
+  password: 1234
   ssl_mode: disable
 
 redis:
-  host: localhost
+  # host: redis
+  host: redis
   port: 6390
   password:
   db: 5

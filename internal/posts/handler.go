@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/akmuhammetakmyradov/test/internal/handlers"
 	"github.com/akmuhammetakmyradov/test/internal/posts/models"
@@ -13,6 +14,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt"
 	"github.com/jackc/pgx"
+	"github.com/redis/go-redis/v9"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -62,7 +64,7 @@ func (h *handler) LoginHandler(c *fiber.Ctx) error {
 		})
 	}
 
-	data, err := h.repository.GetUser(context.Background(), inputUser.Login)
+	data, err := h.repository.Db.GetUser(context.Background(), inputUser.Login)
 
 	if err != nil {
 		if err.Error() == pgx.ErrNoRows.Error() {
@@ -128,7 +130,7 @@ func (h *handler) CreateUserHandler(c *fiber.Ctx) error {
 
 	user.Password = string(hashedPassword)
 
-	data, err := h.repository.CreateUser(context.Background(), user)
+	data, err := h.repository.Db.CreateUser(context.Background(), user)
 
 	if err != nil {
 		if strings.Contains(err.Error(), "violates unique constraint") {
@@ -148,6 +150,7 @@ func (h *handler) CreateUserHandler(c *fiber.Ctx) error {
 }
 
 func (h *handler) CreatePostHandler(c *fiber.Ctx) error {
+	ctx := context.Background()
 	var post models.PostDTO
 	if err := c.BodyParser(&post); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
@@ -155,12 +158,18 @@ func (h *handler) CreatePostHandler(c *fiber.Ctx) error {
 		})
 	}
 
-	data, err := h.repository.CreatePost(context.Background(), post)
+	data, err := h.repository.Db.CreatePost(ctx, post)
 
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"message": "Sorry something bad happened in server",
 		})
+	}
+
+	err = h.repository.Cache.Set(ctx, "post:"+fmt.Sprint(data.ID), data, 5*time.Minute)
+
+	if err != nil {
+		fmt.Println("err in set cache CreatePostHandler: ", err)
 	}
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
@@ -226,6 +235,8 @@ func (h *handler) ReadPostsHandler(c *fiber.Ctx) error {
 
 func (h *handler) ReadPostHandler(c *fiber.Ctx) error {
 	postID, err := strconv.Atoi(c.Params("id"))
+	ctx := context.Background()
+	var post models.Post
 
 	if err != nil {
 		fmt.Println("err in posts ReadPostHandler:", err)
@@ -234,17 +245,29 @@ func (h *handler) ReadPostHandler(c *fiber.Ctx) error {
 		})
 	}
 
-	post, err := h.repository.GetPost(context.Background(), postID)
+	_, err = h.repository.Cache.Get(ctx, fmt.Sprintf("post:%d", postID))
 
-	if err != nil {
-		if err.Error() == pgx.ErrNoRows.Error() {
-			return c.Status(fiber.StatusUnprocessableEntity).JSON(fiber.Map{
-				"message": "post does not exist",
+	if err == redis.Nil || err != nil {
+		post, err = h.repository.Db.GetPost(ctx, postID)
+
+		if err != nil {
+			if err.Error() == pgx.ErrNoRows.Error() {
+				return c.Status(fiber.StatusUnprocessableEntity).JSON(fiber.Map{
+					"message": "post does not exist",
+				})
+			}
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"message": "Sorry something bad happened in server",
 			})
 		}
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"message": "Sorry something bad happened in server",
-		})
+	}
+
+	if err == redis.Nil {
+		err = h.repository.Cache.Set(ctx, "post:"+fmt.Sprint(postID), post, 5*time.Minute)
+
+		if err != nil {
+			fmt.Println("err in set cache CreatePostHandler: ", err)
+		}
 	}
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{

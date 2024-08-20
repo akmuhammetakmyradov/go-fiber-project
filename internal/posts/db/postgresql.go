@@ -62,12 +62,12 @@ func (r *DbRepo) CreateUser(ctx context.Context, user models.UserDTO) (models.ID
 	return result, nil
 }
 
-func (r *DbRepo) CreatePost(ctx context.Context, user models.PostDTO) (models.ID, error) {
-	var result models.ID
+func (r *DbRepo) CreatePost(ctx context.Context, user models.PostDTO) (models.Post, error) {
+	var result models.Post
 
-	query := `INSERT INTO posts (header, text) VALUES ($1, $2) RETURNING id;`
+	query := `INSERT INTO posts (header, text) VALUES ($1, $2) RETURNING id, header, text;`
 
-	err := r.db.QueryRow(ctx, query, user.Header, user.Text).Scan(&result.ID)
+	err := r.db.QueryRow(ctx, query, user.Header, user.Text).Scan(&result.ID, &result.Header, &result.Text)
 
 	if err != nil {
 		fmt.Println("err in posts CreatePost repo:", err)
