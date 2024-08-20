@@ -14,6 +14,6 @@ func main() {
 	}
 
 	if err = app.InitApp(config); err != nil {
-		log.Fatalln(err)
+		log.Fatalln("err in InitApp: ", err)
 	}
 }
