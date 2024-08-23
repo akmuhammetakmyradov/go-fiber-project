@@ -3,7 +3,7 @@ listen:
   port: 3000
 
 postgres:
-  # host: database
+  # host: database        #for docker
   host: localhost
   port: 5432
   username: test
@@ -12,7 +12,7 @@ postgres:
   ssl_mode: disable
 
 redis:
-  # host: redis
+  # host: redis         #for docker
   host: localhost
   port: 6379
   password:

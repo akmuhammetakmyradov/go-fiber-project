@@ -2,6 +2,7 @@ package posts
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"strconv"
 	"strings"
@@ -180,6 +181,7 @@ func (h *handler) CreatePostHandler(c *fiber.Ctx) error {
 
 func (h *handler) DeletePostHandler(c *fiber.Ctx) error {
 	var postID models.ID
+	ctx := context.Background()
 
 	if err := c.BodyParser(&postID); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
@@ -192,7 +194,7 @@ func (h *handler) DeletePostHandler(c *fiber.Ctx) error {
 		})
 	}
 
-	err := h.repository.DeletePost(context.Background(), postID.ID)
+	err := h.repository.DeletePost(ctx, postID.ID)
 
 	if err != nil {
 		if strings.Contains(err.Error(), "not row effected") {
@@ -203,6 +205,12 @@ func (h *handler) DeletePostHandler(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"message": "Sorry something bad happened in server",
 		})
+	}
+
+	err = h.repository.Cache.Delete(ctx, "post:"+fmt.Sprint(postID.ID))
+
+	if err != nil {
+		fmt.Println("err in DeletePost: ", err)
 	}
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
@@ -245,13 +253,17 @@ func (h *handler) ReadPostHandler(c *fiber.Ctx) error {
 		})
 	}
 
-	_, err = h.repository.Cache.Get(ctx, fmt.Sprintf("post:%d", postID))
+	cacheValue, err := h.repository.Cache.Get(ctx, fmt.Sprintf("post:%d", postID))
+
+	if err == nil {
+		err = json.Unmarshal([]byte(cacheValue), &post)
+	}
 
 	if err == redis.Nil || err != nil {
-		post, err = h.repository.Db.GetPost(ctx, postID)
+		post, errDb := h.repository.Db.GetPost(ctx, postID)
 
-		if err != nil {
-			if err.Error() == pgx.ErrNoRows.Error() {
+		if errDb != nil {
+			if errDb.Error() == pgx.ErrNoRows.Error() {
 				return c.Status(fiber.StatusUnprocessableEntity).JSON(fiber.Map{
 					"message": "post does not exist",
 				})
@@ -260,13 +272,13 @@ func (h *handler) ReadPostHandler(c *fiber.Ctx) error {
 				"message": "Sorry something bad happened in server",
 			})
 		}
-	}
 
-	if err == redis.Nil {
-		err = h.repository.Cache.Set(ctx, "post:"+fmt.Sprint(postID), post, 5*time.Minute)
+		if err == redis.Nil {
+			errSet := h.repository.Cache.Set(ctx, "post:"+fmt.Sprint(postID), post, 5*time.Minute)
 
-		if err != nil {
-			fmt.Println("err in set cache CreatePostHandler: ", err)
+			if errSet != nil {
+				fmt.Println("err in set cache CreatePostHandler: ", err)
+			}
 		}
 	}
 
