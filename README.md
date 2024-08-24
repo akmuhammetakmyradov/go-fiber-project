@@ -12,7 +12,11 @@ Before you begin, ensure you have met the following requirements:
 
 - Docker installed on your local machine.
 
-- Golang installed on your local machine.
+  #### Run without Docker
+
+  - Golang installed on your local machine.
+
+  - Redis installed on your local machine.
 
 ### Installation and Usage
 
