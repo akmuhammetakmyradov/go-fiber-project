@@ -227,6 +227,7 @@ func (h *handler) DeletePostHandler(c *fiber.Ctx) error {
 func (h *handler) ReadPostsHandler(c *fiber.Ctx) error {
 	page, errPage := strconv.Atoi(c.Query("page"))
 	limit, errLimit := strconv.Atoi(c.Query("limit"))
+	ctx := context.Background()
 
 	if errPage != nil || errLimit != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
@@ -234,7 +235,18 @@ func (h *handler) ReadPostsHandler(c *fiber.Ctx) error {
 		})
 	}
 
-	posts, err := h.repository.GetPosts(context.Background(), limit, (page-1)*limit)
+	cacheData, _ := h.repository.Cache.PaginationGet(ctx, "posts", page, limit)
+
+	if len(cacheData) != 0 {
+		jsonData, err := json.Marshal(cacheData)
+		if err == nil {
+			return c.Status(fiber.StatusOK).JSON(fiber.Map{
+				"data": jsonData,
+			})
+		}
+	}
+
+	posts, err := h.repository.GetPosts(ctx, limit, (page-1)*limit)
 
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
