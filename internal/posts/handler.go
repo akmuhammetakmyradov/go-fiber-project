@@ -173,6 +173,12 @@ func (h *handler) CreatePostHandler(c *fiber.Ctx) error {
 		fmt.Println("err in set cache CreatePostHandler: ", err)
 	}
 
+	err = h.repository.Cache.PaginationAdd(ctx, "posts", float64(data.CreatedAt.UnixNano()), data)
+
+	if err != nil {
+		fmt.Println("err in set pagination cache CreatePostHandler: ", err)
+	}
+
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"message": "post created successfully",
 		"data":    data,

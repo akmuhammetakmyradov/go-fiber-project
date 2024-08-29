@@ -25,6 +25,8 @@ type Cache interface {
 	Set(ctx context.Context, key string, value interface{}, expiration time.Duration) error
 	Get(ctx context.Context, key string) (string, error)
 	Delete(ctx context.Context, key string) error
+	PaginationAdd(ctx context.Context, key string, score float64, data interface{}) error
+	PaginationGet(ctx context.Context, key string, start, end int) ([]string, error)
 }
 
 type Repository struct {

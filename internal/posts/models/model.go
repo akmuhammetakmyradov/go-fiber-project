@@ -1,5 +1,7 @@
 package models
 
+import "time"
+
 type User struct {
 	ID       int     `json:"id"`
 	Name     *string `json:"name"`
@@ -13,7 +15,8 @@ type ID struct {
 }
 
 type Post struct {
-	ID     int    `json:"id"`
-	Header string `json:"header"`
-	Text   string `json:"text"`
+	ID        int       `json:"id"`
+	Header    string    `json:"header"`
+	Text      string    `json:"text"`
+	CreatedAt time.Time `json:"created"`
 }
